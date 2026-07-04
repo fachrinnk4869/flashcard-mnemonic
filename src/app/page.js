@@ -11,7 +11,8 @@ export default function Home() {
   const [activeDeckIndex, setActiveDeckIndex] = useState(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [showingMnemonic, setShowingMnemonic] = useState(false);
+  const [showingHint, setShowingHint] = useState(false);
+  const [activeHintType, setActiveHintType] = useState("mnemonic"); // "mnemonic" or "example"
   
   // Progress state (client-side only loaded after mount to avoid hydration mismatch)
   const [masteredWords, setMasteredWords] = useState([]);
@@ -92,7 +93,7 @@ export default function Home() {
     setActiveDeckIndex(idx);
     setActiveCardIndex(0);
     setIsFlipped(false);
-    setShowingMnemonic(false);
+    setShowingHint(false);
     setCurrentScreen("study");
   };
 
@@ -116,7 +117,7 @@ export default function Home() {
     if (activeCardIndex < deck.cards.length - 1) {
       setActiveCardIndex(prev => prev + 1);
       setIsFlipped(false);
-      setShowingMnemonic(false);
+      setShowingHint(false);
     } else {
       // Reached the end of the deck, check status and show celebration
       const masteredCountInDeck = deck.cards.filter(c => masteredSet.has(c.word)).length;
@@ -131,7 +132,7 @@ export default function Home() {
     if (activeCardIndex > 0) {
       setActiveCardIndex(prev => prev - 1);
       setIsFlipped(false);
-      setShowingMnemonic(false);
+      setShowingHint(false);
     }
   };
 
@@ -170,7 +171,7 @@ export default function Home() {
       } else if (e.key === "ArrowUp" || e.key === "m" || e.key === "M") {
         e.preventDefault();
         if (!isFlipped) {
-          setShowingMnemonic(prev => !prev);
+          setShowingHint(prev => !prev);
         }
       } else if (e.key === "ArrowDown" || e.key === "Enter") {
         e.preventDefault();
@@ -189,7 +190,8 @@ export default function Home() {
     return flashcardsData.filter(card => {
       return card.word.toLowerCase().includes(query) ||
              card.definition.toLowerCase().includes(query) ||
-             card.mnemonic.toLowerCase().includes(query);
+             card.mnemonic.toLowerCase().includes(query) ||
+             (card.example && card.example.toLowerCase().includes(query));
     });
   }, [searchQuery]);
 
@@ -203,7 +205,7 @@ export default function Home() {
     setActiveDeckIndex(deckIdx);
     setActiveCardIndex(cardIdx);
     setIsFlipped(false);
-    setShowingMnemonic(false);
+    setShowingHint(false);
     setCurrentScreen("study");
   };
 
@@ -491,37 +493,84 @@ export default function Home() {
                     </div>
 
                     {/* Front Footer */}
-                    <div className="flex justify-center w-full">
+                    <div className="flex justify-center items-center gap-3 w-full" onClick={(e) => e.stopPropagation()}>
                       <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowingMnemonic(prev => !prev);
+                        onClick={() => {
+                          setActiveHintType("mnemonic");
+                          setShowingHint(true);
                         }}
                         className="flex items-center gap-1.5 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-300 text-xs px-3.5 py-1.5 rounded-xl font-heading font-semibold transition-all hover:scale-[1.02]"
                       >
                         <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
                         </svg>
-                        Mnemonik Hint
+                        Hint Mnemonik
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setActiveHintType("example");
+                          setShowingHint(true);
+                        }}
+                        className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-300 text-xs px-3.5 py-1.5 rounded-xl font-heading font-semibold transition-all hover:scale-[1.02]"
+                      >
+                        <svg className="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        Contoh Kalimat
                       </button>
                     </div>
 
-                    {/* Front Mnemonic Drawer Slide-Up (Optimized as Fade-In Overlay to bypass no-overflow Firefox clipping bug) */}
+                    {/* Front Hint Drawer Slide-Up */}
                     <div 
                       onClick={(e) => e.stopPropagation()}
-                      className={`absolute inset-0 bg-slate-950/95 border border-violet-500/30 p-6 rounded-3xl flex flex-col justify-between text-left transition-all duration-350 ${
-                        showingMnemonic ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
+                      className={`absolute inset-0 bg-slate-950/95 border ${activeHintType === "mnemonic" ? "border-violet-500/30" : "border-emerald-500/30"} p-6 rounded-3xl flex flex-col justify-between text-left transition-all duration-350 ${
+                        showingHint ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
                       } z-10`}
                     >
                       <div>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-violet-400">Mnemonik Hint</span>
-                        <p className="text-sm text-slate-200 leading-relaxed font-semibold mt-4">
-                          {Decks[activeDeckIndex].cards[activeCardIndex].mnemonic || "Tidak ada mnemonik untuk kata ini."}
-                        </p>
+                        {/* Tab Segmented Control */}
+                        <div className="flex bg-slate-900/80 p-1 rounded-xl gap-1 mb-4 border border-slate-800">
+                          <button
+                            onClick={() => setActiveHintType("mnemonic")}
+                            className={`flex-1 py-1.5 text-center font-heading font-bold text-xs rounded-lg transition-all ${
+                              activeHintType === "mnemonic"
+                                ? "bg-violet-600 text-white shadow-md shadow-violet-500/20"
+                                : "text-slate-400 hover:text-slate-250"
+                            }`}
+                          >
+                            Mnemonik
+                          </button>
+                          <button
+                            onClick={() => setActiveHintType("example")}
+                            className={`flex-1 py-1.5 text-center font-heading font-bold text-xs rounded-lg transition-all ${
+                              activeHintType === "example"
+                                ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                                : "text-slate-400 hover:text-slate-250"
+                            }`}
+                          >
+                            Contoh Kalimat
+                          </button>
+                        </div>
+
+                        {activeHintType === "mnemonic" ? (
+                          <div className="animate-fade-in">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-violet-400">Mnemonik Hint</span>
+                            <p className="text-sm text-slate-200 leading-relaxed font-semibold mt-3">
+                              {Decks[activeDeckIndex].cards[activeCardIndex].mnemonic || "Tidak ada mnemonik untuk kata ini."}
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="animate-fade-in">
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400">Contoh Kalimat</span>
+                            <p className="text-sm text-slate-200 leading-relaxed font-semibold mt-3 italic">
+                              "{Decks[activeDeckIndex].cards[activeCardIndex].example || "Tidak ada contoh kalimat untuk kata ini."}"
+                            </p>
+                          </div>
+                        )}
                       </div>
                       <button 
-                        onClick={() => setShowingMnemonic(false)}
-                        className="w-full bg-violet-600 hover:bg-violet-500 text-white text-xs py-2.5 rounded-xl font-heading font-bold text-center mt-4 transition-all"
+                        onClick={() => setShowingHint(false)}
+                        className={`w-full ${activeHintType === "mnemonic" ? "bg-violet-600 hover:bg-violet-500" : "bg-emerald-600 hover:bg-emerald-500"} text-white text-xs py-2.5 rounded-xl font-heading font-bold text-center mt-4 transition-all`}
                       >
                         Tutup Hint
                       </button>
@@ -544,7 +593,7 @@ export default function Home() {
                     </div>
 
                     {/* Contents */}
-                    <div className="flex-1 overflow-y-auto my-3 pr-1 flex flex-col justify-center gap-4">
+                    <div className="flex-1 overflow-y-auto my-3 pr-1 flex flex-col justify-start gap-3 py-1">
                       <div>
                         <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Makna / Definisi</h4>
                         <p className="text-sm sm:text-base font-semibold text-slate-100 leading-snug">
@@ -557,6 +606,14 @@ export default function Home() {
                           {Decks[activeDeckIndex].cards[activeCardIndex].mnemonic || "Tidak ada mnemonik."}
                         </p>
                       </div>
+                      {Decks[activeDeckIndex].cards[activeCardIndex].example && (
+                        <div className="bg-emerald-600/5 border-l-2 border-emerald-500 p-3 rounded-r-xl">
+                          <h4 className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider mb-1">Contoh Kalimat</h4>
+                          <p className="text-xs sm:text-sm text-emerald-200 font-medium leading-relaxed italic">
+                            "{Decks[activeDeckIndex].cards[activeCardIndex].example}"
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Back Footer */}
@@ -746,6 +803,12 @@ export default function Home() {
                             <p className="text-xs text-violet-200 font-medium leading-relaxed mt-0.5 italic">{card.mnemonic}</p>
                           </div>
                         )}
+                        {card.example && (
+                          <div className="bg-emerald-600/5 border-l-2 border-emerald-500 p-2.5 rounded-r-lg">
+                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">Contoh Kalimat</span>
+                            <p className="text-xs text-emerald-200 font-medium leading-relaxed mt-0.5 italic">"{card.example}"</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -791,6 +854,17 @@ export default function Home() {
                   Lanjut ke Deck {activeDeckIndex + 2}
                 </button>
               )}
+              <button 
+                onClick={() => {
+                  setShowCelebration(false);
+                  setActiveCardIndex(0);
+                  setIsFlipped(false);
+                  setShowingHint(false);
+                }}
+                className="w-full bg-violet-600/25 hover:bg-violet-600/35 border border-violet-500/30 text-violet-300 font-heading font-bold text-sm px-6 py-3.5 rounded-2xl hover:scale-[1.01] transition-all"
+              >
+                Ulangi Deck {activeDeckIndex + 1}
+              </button>
               <button 
                 onClick={() => {
                   setShowCelebration(false);

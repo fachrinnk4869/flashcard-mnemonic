@@ -3,8 +3,8 @@ import json
 import os
 
 def parse_csv():
-    csv_file_path = '/home/fachrikantor/pribadi/simple-flashcard/vocab_gre.csv'
-    js_file_path = '/home/fachrikantor/pribadi/simple-flashcard/data.js'
+    csv_file_path = '/home/fachrikantor/pribadi/simple-flashcard/vocab_gre_v2.csv'
+    js_file_path = '/home/fachrikantor/pribadi/simple-flashcard/src/data/data.js'
     
     if not os.path.exists(csv_file_path):
         print(f"Error: CSV file not found at {csv_file_path}")
@@ -20,14 +20,15 @@ def parse_csv():
             cards.append({
                 'word': word.strip(),
                 'definition': row.get('Makna', '').strip(),
-                'mnemonic': row.get('Mnemonik', '').strip()
+                'mnemonic': row.get('Mnemonik', '').strip(),
+                'example': row.get('Contoh_kalimat', '').strip()
             })
 
     print(f"Successfully parsed {len(cards)} cards.")
     
     with open(js_file_path, mode='w', encoding='utf-8') as out_f:
         out_f.write("// GRE Vocabulary Data\n")
-        out_f.write(f"const flashcardsData = {json.dumps(cards, indent=2, ensure_ascii=False)};\n")
+        out_f.write(f"export const flashcardsData = {json.dumps(cards, indent=2, ensure_ascii=False)};\n")
     print(f"Written data to {js_file_path}")
 
 if __name__ == '__main__':
