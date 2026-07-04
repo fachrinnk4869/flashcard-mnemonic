@@ -450,17 +450,21 @@ export default function Home() {
             </div>
 
             {/* Flashcard Area */}
-            <div className="flex justify-center items-center my-8">
+            <div className="flex justify-center items-center my-8 px-4 w-full">
               <div 
-                className="perspective-1000 w-[550px] max-w-full h-[340px] sm:h-[300px] cursor-pointer"
+                className="perspective-1000 w-[550px] max-w-full h-[320px] sm:h-[300px] cursor-pointer"
                 onClick={() => setIsFlipped(prev => !prev)}
               >
-                <div className={`transform-style-3d duration-500 relative w-full h-full ${
-                  isFlipped ? "rotate-y-180" : ""
-                }`}>
+                <div 
+                  className="transform-style-3d duration-500 relative w-full h-full"
+                  style={{ transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                >
                   
                   {/* CARD FRONT */}
-                  <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-800 bg-gradient-to-br from-slate-900/65 to-slate-950/65 backdrop-blur-md shadow-2xl overflow-hidden">
+                  <div 
+                    className="backface-hidden absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-800 bg-gradient-to-br from-slate-900/75 to-slate-950/75 backdrop-blur-md shadow-2xl"
+                    style={{ transform: "rotateY(0deg) translateZ(1px)" }}
+                  >
                     {/* Front Header */}
                     <div className="flex justify-between items-center w-full">
                       <span className="text-[10px] font-bold bg-slate-900/80 border border-slate-850 px-2.5 py-1 rounded-full text-slate-400">
@@ -502,45 +506,48 @@ export default function Home() {
                       </button>
                     </div>
 
-                    {/* Front Mnemonic Drawer Slide-Up */}
+                    {/* Front Mnemonic Drawer Slide-Up (Optimized as Fade-In Overlay to bypass no-overflow Firefox clipping bug) */}
                     <div 
                       onClick={(e) => e.stopPropagation()}
-                      className={`absolute bottom-0 inset-x-0 bg-slate-950 border-t border-violet-500/25 p-5 rounded-b-3xl text-left transform transition-transform duration-300 ${
-                        showingMnemonic ? "translate-y-0" : "translate-y-full"
+                      className={`absolute inset-0 bg-slate-950/95 border border-violet-500/30 p-6 rounded-3xl flex flex-col justify-between text-left transition-all duration-350 ${
+                        showingMnemonic ? "opacity-100 scale-100 pointer-events-auto" : "opacity-0 scale-95 pointer-events-none"
                       } z-10`}
                     >
-                      <div className="flex justify-between items-center mb-1.5">
+                      <div>
                         <span className="text-[10px] font-extrabold uppercase tracking-wider text-violet-400">Mnemonik Hint</span>
-                        <button 
-                          onClick={() => setShowingMnemonic(false)}
-                          className="text-[10px] font-semibold text-slate-400 hover:text-white"
-                        >
-                          Tutup
-                        </button>
+                        <p className="text-sm text-slate-200 leading-relaxed font-semibold mt-4">
+                          {Decks[activeDeckIndex].cards[activeCardIndex].mnemonic || "Tidak ada mnemonik untuk kata ini."}
+                        </p>
                       </div>
-                      <p className="text-sm text-slate-100 leading-relaxed font-medium">
-                        {Decks[activeDeckIndex].cards[activeCardIndex].mnemonic || "Tidak ada mnemonik untuk kata ini."}
-                      </p>
+                      <button 
+                        onClick={() => setShowingMnemonic(false)}
+                        className="w-full bg-violet-600 hover:bg-violet-500 text-white text-xs py-2.5 rounded-xl font-heading font-bold text-center mt-4 transition-all"
+                      >
+                        Tutup Hint
+                      </button>
                     </div>
                   </div>
 
                   {/* CARD BACK */}
-                  <div className="backface-hidden absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-800 bg-gradient-to-br from-slate-900/65 to-slate-950/65 backdrop-blur-md rotate-y-180 shadow-2xl text-left overflow-y-auto">
+                  <div 
+                    className="backface-hidden absolute inset-0 w-full h-full rounded-3xl p-6 sm:p-8 flex flex-col justify-between border border-slate-800 bg-gradient-to-br from-slate-900/75 to-slate-950/75 backdrop-blur-md shadow-2xl text-left"
+                    style={{ transform: "rotateY(180deg) translateZ(1px)" }}
+                  >
                     {/* Back Header */}
-                    <div className="flex justify-between items-center w-full">
+                    <div className="flex justify-between items-center w-full select-none">
                       <span className="text-[10px] font-bold bg-slate-900/80 border border-slate-850 px-2.5 py-1 rounded-full text-slate-400">
                         Makna & Mnemonik
                       </span>
-                      <span className="text-[10px] text-slate-500 font-semibold select-none">
+                      <span className="text-[10px] text-slate-500 font-semibold">
                         Klik untuk kembali
                       </span>
                     </div>
 
                     {/* Contents */}
-                    <div className="my-auto flex flex-col gap-4">
+                    <div className="flex-1 overflow-y-auto my-3 pr-1 flex flex-col justify-center gap-4">
                       <div>
                         <h4 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Makna / Definisi</h4>
-                        <p className="text-base sm:text-lg font-medium text-slate-100 leading-snug">
+                        <p className="text-sm sm:text-base font-semibold text-slate-100 leading-snug">
                           {Decks[activeDeckIndex].cards[activeCardIndex].definition}
                         </p>
                       </div>
@@ -553,11 +560,11 @@ export default function Home() {
                     </div>
 
                     {/* Back Footer */}
-                    <div className="flex justify-between items-center w-full">
+                    <div className="flex justify-between items-center w-full select-none">
                       <span className="font-heading font-extrabold text-sm text-slate-400">
                         {Decks[activeDeckIndex].cards[activeCardIndex].word}
                       </span>
-                      <span className="text-[10px] text-slate-500 font-medium select-none">
+                      <span className="text-[10px] text-slate-500 font-medium">
                         Spasi untuk membalik
                       </span>
                     </div>
@@ -568,14 +575,14 @@ export default function Home() {
             </div>
 
             {/* Controls Bar */}
-            <div className="flex items-center gap-3 w-full">
+            <div className="grid grid-cols-2 sm:flex sm:flex-row items-center gap-3 w-full max-w-lg mx-auto px-4">
               <button 
                 onClick={(e) => {
                   e.stopPropagation();
                   prevCard();
                 }}
                 disabled={activeCardIndex === 0}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-slate-900/40 hover:bg-slate-900/80 border border-slate-800 disabled:opacity-30 disabled:pointer-events-none px-4 py-3 rounded-2xl text-slate-200 text-xs font-heading font-semibold transition-all hover:scale-[1.01]"
+                className="order-1 col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 bg-slate-900/40 hover:bg-slate-900/80 border border-slate-800 disabled:opacity-30 disabled:pointer-events-none px-4 py-3 rounded-2xl text-slate-200 text-xs font-heading font-semibold transition-all hover:scale-[1.01]"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
@@ -588,7 +595,7 @@ export default function Home() {
                   e.stopPropagation();
                   setIsFlipped(prev => !prev);
                 }}
-                className="bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/30 px-6 py-3 rounded-2xl text-xs font-heading font-bold flex items-center gap-1.5 transition-all hover:scale-[1.01]"
+                className="order-3 col-span-1 sm:flex-none bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-600/30 px-6 py-3 rounded-2xl text-xs font-heading font-bold flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01]"
               >
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                   <path d="M19 8l-4 4h3c0 3.31-2.69 6-6 6-1.01 0-1.97-.25-2.8-.7l-1.46 1.46C8.97 19.54 10.43 20 12 20c4.42 0 8-3.58 8-8h3l-4-4zM6 12c0-3.31 2.69-6 6-6 1.01 0 1.97.25 2.8.7l1.46-1.46C15.03 4.46 13.57 4 12 4c-4.42 0-8 3.58-8 8H1l4 4 4-4H6z"/>
@@ -601,7 +608,7 @@ export default function Home() {
                   e.stopPropagation();
                   toggleMastered();
                 }}
-                className={`px-4 py-3 rounded-2xl border text-xs font-heading font-bold flex items-center gap-1.5 transition-all hover:scale-[1.01] ${
+                className={`order-4 col-span-1 sm:flex-none px-4 py-3 rounded-2xl border text-xs font-heading font-bold flex items-center justify-center gap-1.5 transition-all hover:scale-[1.01] ${
                   isMounted && masteredSet.has(Decks[activeDeckIndex].cards[activeCardIndex].word)
                     ? "bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20"
                     : "bg-slate-900/40 border-slate-800 text-slate-300 hover:text-white"
@@ -618,7 +625,7 @@ export default function Home() {
                   e.stopPropagation();
                   nextCard();
                 }}
-                className="flex-1 flex items-center justify-center gap-1.5 bg-slate-900/40 hover:bg-slate-900/80 border border-slate-800 px-4 py-3 rounded-2xl text-slate-200 text-xs font-heading font-semibold transition-all hover:scale-[1.01]"
+                className="order-2 col-span-1 sm:flex-1 flex items-center justify-center gap-1.5 bg-slate-900/40 hover:bg-slate-900/80 border border-slate-800 px-4 py-3 rounded-2xl text-slate-200 text-xs font-heading font-semibold transition-all hover:scale-[1.01]"
               >
                 Berikutnya
                 <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
