@@ -1,5 +1,5 @@
 // GRE Vocabulary Data
-const flashcardsData = [
+export const flashcardsData = [
   {
     "word": "aberrant",
     "definition": "Abnormal; different from the accepted norm",
